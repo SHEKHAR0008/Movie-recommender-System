@@ -35,6 +35,7 @@ def recommend(movie):
     return ret_lst
 
 
+
 selected_movie_name = st.selectbox(
     "How would you like to be contacted?",
     movies_list,
