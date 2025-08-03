@@ -22,12 +22,14 @@ def recommend_movie(movie):
     idx = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
     return [(i[0], movies.iloc[i[0]]['title']) for i in idx]
 
-def recommend_book(book):
-    books_idx = books[books["title"] == book].index[0]
-    distances = similarity_books[books_idx]
-    idx = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
-    recommended_books = books.iloc[[i[0] for i in idx]]
-    return list(zip(recommended_books['title'], recommended_books['thumbnail']))
+def recommend_book(book,top_n=5):
+    try:
+        books_idx = books[books['title'] == book].index[0]
+    except IndexError:
+        return ["Book not found in dataset."]
+    top_similar= similarity_books[books_idx][:top_n]
+    recommend = books.iloc[[k for k in top_similar]]
+    return list(zip(recommend['title'], recommend['thumbnail']))
 
 
 # Page Layout
@@ -44,8 +46,18 @@ def movie_poster(movie_id):
         data = response.json()
         return "https://image.tmdb.org/t/p/w500" + data["poster_path"]
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching poster for movie_id {movie_id}: {e}")
-        return "https://via.placeholder.com/100x150.png?text=No+Image"
+        return "https://img.freepik.com/free-vector/man-saying-no-concept-illustration_114360-14222.jpg"
+
+def display_fixed_image(img_url, width=200, height=300):
+    st.markdown(
+        f"""
+        <img src="{img_url}" 
+             style="width:{width}px; height:{height}px; object-fit:cover; border-radius:8px; border:1px solid #ccc;"
+             alt="Image"/>
+        """,
+        unsafe_allow_html=True
+    )
+
 # Movie Tab
 with tabs[0]:
     st.header("🎬 Movie Recommendation")
@@ -58,8 +70,10 @@ with tabs[0]:
 
         for i,j in enumerate(recommended_movies):
             with [col1, col2, col3][i % 3]:
-                st.image(movie_poster(j[0]), width=100)
+                display_fixed_image(movie_poster(j[0]))
                 st.markdown(f"**{j[1]}**")
+
+
 
 # Book Tab
 with tabs[1]:
@@ -74,5 +88,5 @@ with tabs[1]:
 
         for idx, (title, thumb) in enumerate(recommended_books):
             with [col1, col2, col3][idx % 3]:
-                st.image(thumb, width=100)
+                display_fixed_image(thumb)
                 st.markdown(f"**{title}**")
