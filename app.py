@@ -16,11 +16,20 @@ books_list = books['title'].values
 similarity_books = pickle.load(open('similarity_books.pkl', 'rb'))
 
 # Functions
-def recommend_movie(movie):
-    movie_idx = movies[movies["title"] == movie].index[0]
-    distances = similarity_movies[movie_idx]
-    idx = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
-    return [(i[0], movies.iloc[i[0]]['title']) for i in idx]
+def recommend_movie(movie, top_n=5):
+    try:
+        index = movies[movies['title'] == movie].index[0]
+    except IndexError:
+        return ["Book not found in dataset."]
+
+    recommended_movie = []
+    top_similar = similarity_movies[index][:top_n]
+
+    for i in top_similar:
+        movi = movies.iloc[i].title
+        id = movies.iloc[i].id
+        recommended_movie.append((movi,id))
+    return recommended_movie
 
 def recommend_book(book,top_n=5):
     try:
@@ -28,8 +37,8 @@ def recommend_book(book,top_n=5):
     except IndexError:
         return ["Book not found in dataset."]
     top_similar= similarity_books[books_idx][:top_n]
-    recommend = books.iloc[[k for k in top_similar]]
-    return list(zip(recommend['title'], recommend['thumbnail']))
+    recommend_b = books.iloc[[k for k in top_similar]]
+    return list(zip(recommend_b['title'], recommend_b['thumbnail']))
 
 
 # Page Layout
@@ -44,11 +53,16 @@ def movie_poster(movie_id):
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
-        return "https://image.tmdb.org/t/p/w500/" + data["poster_path"]
+        poster_path = data["poster_path"]
+        if poster_path:  # if not None
+            return "https://image.tmdb.org/t/p/w500/" + poster_path
+        else:
+            return "https://img.freepik.com/free-vector/man-saying-no-concept-illustration_114360-14222.jpg"
     except requests.exceptions.RequestException as e:
         return "https://img.freepik.com/free-vector/man-saying-no-concept-illustration_114360-14222.jpg"
 
 def display_fixed_image(img_url, width=200, height=300):
+
     st.markdown(
         f"""
         <img src="{img_url}" 
@@ -70,8 +84,8 @@ with tabs[0]:
 
         for i,j in enumerate(recommended_movies):
             with [col1, col2, col3][i % 3]:
-                display_fixed_image(movie_poster(j[0]))
-                st.markdown(f"**{j[1]}**")
+                display_fixed_image(movie_poster(j[1]))
+                st.markdown(f"**{j[0]}**")
 
 
 
@@ -88,5 +102,16 @@ with tabs[1]:
 
         for idx, (title, thumb) in enumerate(recommended_books):
             with [col1, col2, col3][idx % 3]:
-                display_fixed_image(thumb)
+                try:
+                    # check if URL is reachable
+                    response = requests.head(thumb, timeout=5)
+                    if response.status_code == 200:
+                        display_fixed_image(thumb)
+                    else:
+                        display_fixed_image(
+                            "https://img.freepik.com/free-vector/man-saying-no-concept-illustration_114360-14222.jpg")
+                except:
+                    # fallback if request fails
+                    display_fixed_image(
+                        "https://img.freepik.com/free-vector/man-saying-no-concept-illustration_114360-14222.jpg")
                 st.markdown(f"**{title}**")
