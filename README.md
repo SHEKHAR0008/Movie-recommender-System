@@ -1,5 +1,5 @@
 # 📚🎬 Book and Movie Recommender System
-**APP Link** --- https://movie-recommender-system-ep27waewjuzpfa9cqbb88x.streamlit.app/ 
+**APP Link** --- https://movie-recommender-system-rtugeevzw2y8vtctniuelu.streamlit.app/
 ## 📌 Project Overview
 This project is a **content-based recommender system** that suggests the top 5 books and movies to users based on their input.  
 It leverages **Natural Language Processing (NLP)** techniques to analyze content similarity between items.
