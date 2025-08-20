@@ -44,7 +44,7 @@ def movie_poster(movie_id):
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         data = response.json()
-        return "https://image.tmdb.org/t/p/w500" + data["poster_path"]
+        return "https://image.tmdb.org/t/p/w500/" + data["poster_path"]
     except requests.exceptions.RequestException as e:
         return "https://img.freepik.com/free-vector/man-saying-no-concept-illustration_114360-14222.jpg"
 
